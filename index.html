@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="png" href="logo.png">
+    <title>Brain Tumor Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #445D48;
+            /* Forest Green */
+            --bg: #FDE5D4;
+            /* Cream Background */
+            --card-bg: #ffffff;
+            /* White Card */
+            --text-main: #001524;
+            /* Deep Navy */
+            --text-muted: #5E3023;
+            /* Earth Brown */
+            --accent-success: #D6CC99;
+            /* Sage Accent */
+            --border: #D6CC99;
+            /* Sage Border */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        /* Header Area */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 4em;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+        }
+
+        .header h1 span {
+            color: var(--primary);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        /* Main Interaction Container */
+        .main-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 520px;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(94, 48, 35, 0.1);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #uploadForm {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dropzone Styling - Fixed Glitch */
+        .upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(214, 204, 153, 0.1);
+            width: 100%;
+            min-height: 220px;
+            /* Maintains structure */
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(68, 93, 72, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-area i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Form Elements */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        select {
+            appearance: none;
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(68, 93, 72, 0.1);
+        }
+
+        .btn-detect {
+            width: 100%;
+            padding: 16px;
+            background: var(--text-main);
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-detect:hover {
+            background: var(--primary);
+            box-shadow: 0 10px 20px rgba(68, 93, 72, 0.2);
+        }
+
+        /* Preview Image Area - Fixed Glitch */
+        .preview-container {
+            margin-top: 5px;
+            position: relative;
+            display: none;
+            /* Controlled by JS */
+            width: 100%;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #previewImage {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 15px;
+            border: 4px solid var(--border);
+            display: block;
+        }
+
+        .remove-img {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--text-muted);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            margin-top: 60px;
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            align-items: center;
+        }
+
+        .result-card.full-width {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--primary);
+            color: white;
+        }
+
+        .result-card h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .full-width h3 {
+            color: var(--bg);
+            opacity: 0.9;
+        }
+
+        .result-card img {
+            width: 100%;
+            border-radius: 12px;
+            background: var(--bg);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+
+        .result-card img:hover {
+            transform: scale(1.02);
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: var(--accent-success);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-card.full-width {
+                grid-column: span 1;
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <br><br><br>
+    <div class="header">
+        <h1>Brain Tumor <span style="color: var(--primary);">Detection</span></h1>
+        <p>Precision Brain Tumor Analysis & Segmentation</p>
+    </div>
+
+    <div class="main-card">
+        <form id="uploadForm">
+            <label class="upload-area" id="dropZone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p id="uploadText"><strong>Click to upload</strong> or drag and drop</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">MRI Scans (JPG, PNG, DICOM)</p>
+                <input type="file" id="imageUpload" accept="image/*" required>
+            </label>
+
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage">
+                <button type="button" class="remove-img" id="removeImage">×</button>
+            </div>
+            <div class="controls">
+                <select required id="viewSelect">
+                    <option value="" disabled selected>Select MRI Viewport</option>
+                    <option value="1">Axial View</option>
+                    <option value="2">Coronal View</option>
+                    <option value="3">Sagittal View</option>
+                </select>
+
+                <button type="submit" class="btn-detect" id="submitBtn">Run Analysis</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="results-grid" id="outputSection">
+        <div class="result-card full-width">
+            <div class="status-badge">
+                <h3 style="margin-bottom: 4px; color: #0f172a;">Diagnostic Result</h3>
+                <p id="resultText" style="font-size: 1.2rem; font-weight: 700; color: #0f172a;">Processing...</p>
+            </div>
+        </div>
+
+        <div class="result-card">
+            <h3>Segmentation Mask</h3>
+            <img id="maskImage">
+        </div>
+
+        <div class="result-card">
+            <h3>Detection Overlay</h3>
+            <img id="maskBoxImage">
+        </div>
+
+        <div class="result-card">
+            <h3>Bounding Box</h3>
+            <img id="imageBox">
+        </div>
+
+        <div class="result-card">
+            <h3>Targeted Crop</h3>
+            <img id="cropImage">
+        </div>
+    </div>
+
+    <script>
+        const upload = document.getElementById("imageUpload");
+        const preview = document.getElementById("previewImage");
+        const previewContainer = document.getElementById("previewContainer");
+        const dropZone = document.getElementById("dropZone");
+        const removeBtn = document.getElementById("removeImage");
+
+        upload.addEventListener("change", function () {
+            const file = this.files[0];
+            if (file) {
+                previewContainer.style.display = "block";
+                dropZone.style.display = "none";
+                preview.src = URL.createObjectURL(file);
+            }
+        });
+
+        removeBtn.addEventListener("click", function () {
+            upload.value = "";
+            preview.src = "";
+            previewContainer.style.display = "none";
+            dropZone.style.display = "block";
+        });
+
+        document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById("submitBtn");
+            const resultText = document.getElementById("resultText");
+
+            btn.innerText = "Analyzing Scans...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+
+            let formData = new FormData();
+            formData.append("file", upload.files[0]);
+            formData.append("view", document.querySelector("#viewSelect").value);
+
+            try {
+                let response = await fetch("http://127.0.0.1:8000/predict", {
+                    method: "POST",
+                    body: formData
+                });
+                let data = await response.json();
+
+                // Reveal results
+                document.getElementById("outputSection").style.display = "grid";
+                resultText.innerHTML = data.prediction;
+
+                document.getElementById("maskImage").src = "data:image/png;base64," + data.generated_mask;
+                document.getElementById("maskBoxImage").src = "data:image/png;base64," + data.predicted_mask_with_box;
+                document.getElementById("imageBox").src = "data:image/png;base64," + data.image_with_box;
+
+                if (data.cropped_tumor) {
+                    document.getElementById("cropImage").src = "data:image/png;base64," + data.cropped_tumor;
+                } else {
+                    document.getElementById("cropImage").style.display = "none";
+                }
+
+                // Scroll to results
+                window.scrollTo({top: document.getElementById("outputSection").offsetTop - 50, behavior: 'smooth'});
+
+            } catch (error) {
+                resultText.innerHTML = "Error connecting to server.";
+            } finally {
+                btn.innerText = "Run Analysis";
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
